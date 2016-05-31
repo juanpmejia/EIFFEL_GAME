@@ -57,7 +57,7 @@ feature
 		local
 			l_medium: SED_MEDIUM_READER_WRITER
 		do
-			soc1.accept()
+			soc1.accept
 			if attached {NETWORK_STREAM_SOCKET} soc1.accepted as soc2 then
 				create l_medium.make (soc2)
 				l_medium.set_for_reading
