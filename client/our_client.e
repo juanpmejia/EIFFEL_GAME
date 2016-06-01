@@ -1,7 +1,7 @@
 note
 
 	description:
-		"Client root-class for the two_mach example."
+		"Client root-class for the predef example."
 	legal: "See notice at end of class.";
 
 	status: "See notice at end of class.";
@@ -12,78 +12,78 @@ class OUR_CLIENT
 
 inherit
 
-	SOCKET_RESOURCES
-
-	SED_STORABLE_FACILITIES
+	NETWORK_CLIENT
+		redefine
+			received
+		end
 
 create
 
-	make
+	make_client
 
 feature
 
+	our_list: OUR_MESSAGE
 
-	make (argv: ARRAY [STRING])
-			-- Establish communication with server, and exchange messages.
+	received: detachable OUR_MESSAGE -- Type redefinition
+
+	make_client (argv: ARRAY [STRING])
+			-- Build list, send it, receive modified list, and print it.
 		local
-			soc1: detachable NETWORK_STREAM_SOCKET
+			l_host: STRING
+			l_port: INTEGER
+			l_in_out: detachable like in_out
 		do
 			if argv.count /= 3 then
-				io.error.putstring ("Usage: ")
-				io.error.putstring (argv.item (0))
-				io.error.putstring (" hostname portnumber%N")
+				io.error.put_string ("Usage: ")
+				io.error.put_string (argv.item (0))
+				io.error.put_string (" hostname portnumber%N")
+				io.error.put_string ("Defaulting to host `localhost' and port `2000'.%N")
+				l_port := 2000
+				l_host := "localhost"
 			else
-				create soc1.make_client_by_port (argv.item (2).to_integer, argv.item (1))
-				soc1.connect
-				process (soc1) -- See below
-				soc1.cleanup
+				l_port := argv.item (2).to_integer
+				l_host := argv.item (1)
 			end
+			make (l_port, l_host)
+			l_in_out := in_out
+			build_list
+			send (our_list)
+			receive
+			process_received
+			cleanup
 		rescue
-			if soc1 /= Void then
-				soc1.cleanup
+			if l_in_out /= Void and then not l_in_out.is_closed then
+				l_in_out.close
 			end
 		end
 
-	process (soc1: NETWORK_STREAM_SOCKET)
-			-- Build a message to server, receive answer, build
-			-- modified message from that answer, and print it.
-		local
-			our_list: OUR_MESSAGE
-			count: INTEGER
-			l_medium: SED_MEDIUM_READER_WRITER
+	build_list
+			-- Build list of strings `our_list' for transmission to server.
 		do
 			create our_list.make
 			our_list.extend ("This ")
 			our_list.extend ("is ")
 			our_list.extend ("our ")
 			our_list.extend ("test.")
+		end
 
-			create l_medium.make (soc1)
-
-			from
-				count :=0
-			until
-				count = 20
-			loop
-				l_medium.set_for_writing
-				our_list.extend (count.out)
-				independent_store (our_list, l_medium, True)
-				l_medium.set_for_reading
-				if attached {OUR_MESSAGE} retrieved (l_medium, True) as our_new_list then
-					from
-						our_new_list.start
-					until
-						our_new_list.after
-					loop
-						io.putstring (our_new_list.item)
-						our_new_list.forth
-					end
-				else
-					io.put_string ("Failed retrieving list.")
+	process_received
+			-- Print the contents of received in sequence.
+		do
+			if attached {OUR_MESSAGE} received as l_received then
+				from
+					l_received.start
+				until
+					l_received.after
+				loop
+					io.put_string (l_received.item)
+					l_received.forth
 				end
-				io.new_line
-				count := count + 1
+			else
+				io.put_string ("No list received.")
 			end
+			io.new_line
 		end
 
 note

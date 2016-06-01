@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-15-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-15-0 http://www.eiffel.com/developers/xml/configuration-1-15-0.xsd" name="two_mach_clientmod" uuid="B48127C3-C8DA-43A8-A4F5-378FFEDD4DB1">
-	<target name="two_mach_client">
-		<root class="OUR_CLIENT" feature="make"/>
-		<option warning="true" full_class_checking="true" is_attached_by_default="false" is_obsolete_routine_type="true" void_safety="none" syntax="transitional">
+<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-5-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-5-0 http://www.eiffel.com/developers/xml/configuration-1-5-0.xsd" name="predef_client" uuid="970609FD-9868-4F51-BD28-D7F7C11C18A7">
+	<target name="predef_client">
+		<root class="OUR_CLIENT" feature="make_client"/>
+		<option warning="true" full_class_checking="true">
 			<assertions precondition="true"/>
 		</option>
 		<setting name="console_application" value="true"/>
