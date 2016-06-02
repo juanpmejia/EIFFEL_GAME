@@ -14,6 +14,7 @@ feature {NONE} -- Initialization
 	make
 		local
 			controller:GAME_LIB_CONTROLLER
+			client: OUR_CLIENT
 		do
 			create controller.make
 			controller.enable_video -- Enable the video functionalities

@@ -8,6 +8,9 @@
 		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
 		<library name="eiffel_game_lib" location="$EIFFEL_LIBRARY\contrib\library\game\game_core_lib\game_core_lib.ecf"/>
 		<library name="game_images_files_lib" location="$EIFFEL_LIBRARY\contrib\library\game\game_images_files_lib\game_images_files_lib.ecf"/>
+		<library name="net" location="$ISE_LIBRARY\library\net\net.ecf"/>
+		<cluster name="client" location="..\client\" recursive="true"/>
+		<cluster name="common" location="..\common\" recursive="true"/>
 		<cluster name="project" location=".\" recursive="true">
 			<file_rule>
 				<exclude>/.svn$</exclude>
@@ -19,6 +22,5 @@
 	</target>
 	<target name="anim2" extends="anim2-mac">
 		<precompile name="base_pre" location="$ISE_PRECOMP\base.ecf"/>
-		<library name="net" location="$ISE_LIBRARY\library\net\net.ecf"/>
 	</target>
 </system>
