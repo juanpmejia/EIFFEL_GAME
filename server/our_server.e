@@ -46,11 +46,12 @@ feature
 				create soc1.make_server_by_port (l_port)
 				from
 					soc1.listen (5)
-					soc1.accept
+
 					count := 0
 				until
 					false
 				loop
+					soc1.accept
 					io.put_string ("Intentando procesar%N")
 					process_message  -- See below
 					io.put_string ("Se proceso%N")
@@ -113,7 +114,7 @@ feature
 					io.put_string ("No list received.")
 				end
 				--io.new_line
-				--soc2.close
+				soc2.close
 			else
 				io.put_string ("No pude recibir%N")
 			end

@@ -100,6 +100,7 @@ feature {NONE} -- Routines
 					client.send (message)
 					maryo_x := client.receive.at (1).to_integer
 					--client.soc1.cleanup
+					client.restart
 					--io.put_string ("PUDE RECIBIR!")
 					anim_index:=(anim_index+1)\\20		-- The same image must be print for 5 calls of main_loop. There is 4 images in the animation.
 														-- o at index 20, we go back to the first (index 0)
@@ -109,6 +110,7 @@ feature {NONE} -- Routines
 					message.extend ("RIGHT")
 					client.send (message)
 					maryo_x := client.receive.at (1).to_integer
+					client.restart
 					anim_index:=(anim_index+1)\\20		-- The same image must be print for 5 calls of main_loop. There is 4 images in the animation.
 														-- o at index 20, we go back to the first (index 0)
 					controller.screen_surface.draw_surface (maryo_anim.at ((anim_index//5)+1), maryo_x, maryo_y) 	-- Shaw the animation images 1 to 4
