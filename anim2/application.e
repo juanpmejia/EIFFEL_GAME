@@ -11,10 +11,12 @@ create
 
 feature {NONE} -- Initialization
 
+	client: OUR_CLIENT
+
 	make
 		local
 			controller:GAME_LIB_CONTROLLER
-			client: OUR_CLIENT
+
 		do
 			create controller.make
 			controller.enable_video -- Enable the video functionalities
@@ -78,6 +80,8 @@ feature {NONE} -- Routines
 
 	main_loop(controller:GAME_LIB_CONTROLLER;bk:GAME_SURFACE;maryo_anim:LIST[GAME_SURFACE])
 			-- This routine is not a loop, but it will be launch at each pass of the application main loop
+		local
+			message : OUR_MESSAGE
 		do
 			from
 				must_quit:=false
@@ -85,13 +89,21 @@ feature {NONE} -- Routines
 				must_quit
 			loop
 				controller.screen_surface.draw_surface (bk, 0, 0)	-- Print the background on the screen surface
+				create message.make
+				message.extend (maryo_x.out)
 				if go_left then
-					maryo_x:=maryo_x-1	-- Move the Maryo to the left
+					message.extend ("LEFT")
+					--maryo_x:=maryo_x-1	-- Move the Maryo to the left
+					create client.make_client (message)
+					maryo_x := client.received.at (1).to_integer
 					anim_index:=(anim_index+1)\\20		-- The same image must be print for 5 calls of main_loop. There is 4 images in the animation.
 														-- o at index 20, we go back to the first (index 0)
 					controller.screen_surface.draw_surface (maryo_anim.at ((anim_index//5)+5), maryo_x, maryo_y)	-- Show the animation images 5 to 8
 				elseif go_right then
-					maryo_x:=maryo_x+1	-- Move the Maryo to the left
+--					maryo_x:=maryo_x+1	-- Move the Maryo to the left
+					message.extend ("RIGHT")
+					create client.make_client (message)
+					maryo_x := client.received.at (1).to_integer
 					anim_index:=(anim_index+1)\\20		-- The same image must be print for 5 calls of main_loop. There is 4 images in the animation.
 														-- o at index 20, we go back to the first (index 0)
 					controller.screen_surface.draw_surface (maryo_anim.at ((anim_index//5)+1), maryo_x, maryo_y) 	-- Shaw the animation images 1 to 4

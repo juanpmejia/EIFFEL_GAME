@@ -26,6 +26,8 @@ create
 feature
 
 	received: detachable OUR_MESSAGE --Type redefinition
+
+	our_list : OUR_MESSAGE
 --	make (argv: ARRAY [STRING])
 --			-- Accept communication with client and exchange messages
 --		local
@@ -81,7 +83,7 @@ feature
 		local
 				l_port: INTEGER
 				l_in_out: detachable like in
-				our_list: OUR_MESSAGE
+				--our_list: OUR_MESSAGE
 			do
 				if argv.count /= 2 then
 					io.error.put_string ("Usage: ")
@@ -92,13 +94,20 @@ feature
 				else
 					l_port := argv.item (1).to_integer
 				end
-				make (l_port)
-				l_in_out := in
-				receive
-				process_message
-				create our_list.make
-				our_list.extend ("Mocos")
-				resend (our_list)
+
+				from
+					make (l_port)
+				until
+					false
+				loop
+
+					l_in_out := in
+					receive
+					create our_list.make
+					process_message
+					--our_list.extend ("Mocos")
+					resend (our_list)
+				end
 				cleanup
 			rescue
 				if l_in_out /= Void and then not l_in_out.is_closed then
@@ -108,16 +117,36 @@ feature
 
 	process_message
 			-- Print the contents of received in sequence.
+		local
+			posX:INTEGER
 		do
 			if attached {OUR_MESSAGE} received as l_received then
-				from
-					l_received.start
-				until
-					l_received.after
-				loop
-					io.put_string("Recibi: ")
-					io.put_string (l_received.item)
-					l_received.forth
+				posX := l_received.at(1).to_integer
+				if(l_received.at (2).is_equal ("LEFT")) then
+--					io.put_string ("Detecte izquierda")
+					posX := posX - 1
+					our_list.extend(posX.out)
+					--io.put_string (posX.out)
+				elseif(l_received.at (2).is_equal ("RIGHT")) then
+					posX := posX + 1
+					our_list.extend(posX.out)
+					--io.put_string (posX.out)
+				else
+					io.put_string ("FUCK%N")
+					io.put_string (l_received.at (2))
+					io.new_line
+					from
+						l_received.start
+						io.put_string ("Esto es lo que esta:%N")
+					until
+						l_received.after
+					loop
+						io.put_string (l_received.item)
+						io.new_line
+						l_received.forth
+					end
+					posX := posX - 1
+					our_list.extend(posX.out)
 				end
 			else
 				io.put_string ("No list received.")
