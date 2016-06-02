@@ -28,6 +28,8 @@ feature
 
 	soc1: NETWORK_STREAM_SOCKET
 
+	velx : INTEGER
+
 	make_server(argv: ARRAY [STRING])
 		local
 				l_port: INTEGER
@@ -42,7 +44,7 @@ feature
 				else
 					l_port := argv.item (1).to_integer
 				end
-
+				velx := 10
 				create soc1.make_server_by_port (l_port)
 				from
 					soc1.listen (5)
@@ -82,11 +84,11 @@ feature
 					posX := l_received.at(1).to_integer
 					if(l_received.at (2).is_equal ("LEFT")) then
 	--					io.put_string ("Detecte izquierda")
-						posX := posX - 1
+						posX := posX - velx
 						our_list.extend(posX.out)
 						--io.put_string (posX.out)
 					elseif(l_received.at (2).is_equal ("RIGHT")) then
-						posX := posX + 1
+						posX := posX + velx
 						our_list.extend(posX.out)
 						--io.put_string (posX.out)
 					else
