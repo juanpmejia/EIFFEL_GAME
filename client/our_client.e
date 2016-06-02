@@ -13,10 +13,9 @@ class OUR_CLIENT
 
 inherit
 
-	NETWORK_CLIENT
-		redefine
-			received
-		end
+	SOCKET_RESOURCES
+
+	SED_STORABLE_FACILITIES
 
 create
 
@@ -28,12 +27,15 @@ feature
 
 	received: detachable OUR_MESSAGE -- Type redefinition
 
+	soc1: detachable NETWORK_STREAM_SOCKET
+
+	l_host: STRING
+
+	l_port: INTEGER
+
 	make_client (argv: OUR_MESSAGE)
 			-- Build list, send it, receive modified list, and print it.
-		local
-			l_host: STRING
-			l_port: INTEGER
-			l_in_out: detachable like in_out
+
 		do
 			if argv.count /= 3 then
 --				io.error.put_string ("Usage: ")
@@ -41,59 +43,55 @@ feature
 --				io.error.put_string (" hostname portnumber%N")
 --				io.error.put_string ("Defaulting to host `localhost' and port `2000'.%N")
 				l_port := 2000
-				l_host := "localhost"
+				l_host := "localhost"--"192.168.250.251"
 			else
 				l_port := argv.at (2).to_integer
 				l_host := argv.at (1)
 			end
-			make (l_port, l_host)
-			l_in_out := in_out
-			build_list(argv.at (1).to_integer,argv.at (2))
-			send (our_list)
-			receive
-			process_received
-			cleanup
+			l_port := 55555
+			l_host := "localhost"--"192.168.250.251"
+			create soc1.make_client_by_port (l_port, l_host)
+			soc1.connect
+			io.put_string ("Conecte%N")
 		rescue
-			if l_in_out /= Void and then not l_in_out.is_closed then
-				l_in_out.close
+			if soc1 /= Void then
+				soc1.cleanup
 			end
 		end
 
-	build_list( posX:INTEGER ; dir:STRING)
-			-- Build list of strings `our_list' for transmission to server.
+	send(toSend : OUR_MESSAGE)
+		local
+			l_medium: SED_MEDIUM_READER_WRITER
 		do
-			create our_list.make
-			our_list.extend (posX.out)
-			our_list.extend (dir)
---			from
---				our_list.start
---				io.put_string ("Esto envio:%N")
---			until
---				our_list.after
---			loop
---				io.put_string (our_list.item)
---				io.new_line
---				our_list.forth
---			end
+			create l_medium.make (soc1)
+			l_medium.set_for_writing
+			io.put_string ("Tratando de enviar%N")
+			independent_store (toSend, l_medium, True)
+			io.put_string ("Envie! Cliente%N")
+			--l_medium.set_for_reading
+
 		end
 
-	process_received
-			-- Print the contents of received in sequence.
+	receive : OUR_MESSAGE
+			-- Build a message to server, receive answer, build
+			-- modified message from that answer, and print it.
+		local
+			l_medium: SED_MEDIUM_READER_WRITER
 		do
-			if attached {OUR_MESSAGE} received as l_received then
---				from
---					l_received.start
---				until
---					l_received.after
---				loop
---					io.put_string ("Esto recibi:%N")
---					io.put_string (l_received.item)
---					l_received.forth
---				end
+			create l_medium.make (soc1)
+			l_medium.set_for_reading
+			if attached {OUR_MESSAGE} retrieved (l_medium, True) as our_new_list then
+				io.put_string ("Recibi Cliente%N")
+				Result:=our_new_list
 			else
-				io.put_string ("No list received.")
+				io.put_string ("me jodi Cliente%N")
 			end
-			io.new_line
+		end
+
+	restart
+		do
+			create soc1.make_client_by_port (l_port, l_host)
+			soc1.connect
 		end
 
 note

@@ -12,13 +12,10 @@ class OUR_SERVER
 
 inherit
 
-	--SOCKET_RESOURCES
+	SOCKET_RESOURCES
 
-	--STORABLE
-	NETWORK_SERVER
-		redefine
-			received
-		end
+	SED_STORABLE_FACILITIES
+
 create
 
 	make_server
@@ -28,62 +25,13 @@ feature
 	received: detachable OUR_MESSAGE --Type redefinition
 
 	our_list : OUR_MESSAGE
---	make (argv: ARRAY [STRING])
---			-- Accept communication with client and exchange messages
---		local
---			soc1: detachable NETWORK_STREAM_SOCKET
---			count: INTEGER
---		do
---			if argv.count /= 2 then
---				io.error.putstring ("Usage: ")
---				io.error.putstring (argv.item (0))
---				io.error.putstring (" portnumber%N")
---			else
---				create soc1.make_server_by_port (argv.item (1).to_integer)
---				from
---					soc1.listen (5)
---					count := 0
---				until
---					count = 3
---				loop
---					process (soc1)-- See below
---					count := count + 1
---				end
---				soc1.cleanup
---			end
---		rescue
---			if soc1 /= Void then
---				soc1.cleanup
---			end
---		end
 
---	process (soc1: NETWORK_STREAM_SOCKET)
---			-- Receive a message, extend it, and send it back.
---		do
---			soc1.accept
---			if
---				attached {NETWORK_STREAM_SOCKET} soc1.accepted as soc2 and then
---				attached {OUR_MESSAGE} retrieved (soc2) as our_new_list
---			then
---				from
---					our_new_list.start
---				until
---					our_new_list.after
---				loop
---					io.putstring (our_new_list.item)
---					our_new_list.forth
---					io.new_line
---				end
---				our_new_list.extend ("%N I'm back.%N")
---				our_new_list.general_store (soc2)
---				soc2.close
---			end
---		end
+	soc1: NETWORK_STREAM_SOCKET
+
 	make_server(argv: ARRAY [STRING])
 		local
 				l_port: INTEGER
-				l_in_out: detachable like in
-				--our_list: OUR_MESSAGE
+				count : INTEGER
 			do
 				if argv.count /= 2 then
 					io.error.put_string ("Usage: ")
@@ -95,63 +43,80 @@ feature
 					l_port := argv.item (1).to_integer
 				end
 
+				create soc1.make_server_by_port (l_port)
 				from
-					make (l_port)
+					soc1.listen (5)
+					soc1.accept
+					count := 0
 				until
 					false
 				loop
-
-					l_in_out := in
-					receive
-					create our_list.make
-					process_message
-					--our_list.extend ("Mocos")
-					resend (our_list)
+					io.put_string ("Intentando procesar%N")
+					process_message  -- See below
+					io.put_string ("Se proceso%N")
+					count := count + 1
 				end
-				cleanup
-			rescue
-				if l_in_out /= Void and then not l_in_out.is_closed then
-					l_in_out.close
-				end
+				io.put_string ("sali")
+				soc1.cleanup
+		rescue
+			if soc1 /= Void then
+				soc1.cleanup
+			end
 		end
 
 	process_message
 			-- Print the contents of received in sequence.
 		local
+			l_medium : SED_MEDIUM_READER_WRITER
 			posX:INTEGER
 		do
-			if attached {OUR_MESSAGE} received as l_received then
-				posX := l_received.at(1).to_integer
-				if(l_received.at (2).is_equal ("LEFT")) then
---					io.put_string ("Detecte izquierda")
-					posX := posX - 1
-					our_list.extend(posX.out)
-					--io.put_string (posX.out)
-				elseif(l_received.at (2).is_equal ("RIGHT")) then
-					posX := posX + 1
-					our_list.extend(posX.out)
-					--io.put_string (posX.out)
-				else
-					io.put_string ("FUCK%N")
-					io.put_string (l_received.at (2))
-					io.new_line
-					from
-						l_received.start
-						io.put_string ("Esto es lo que esta:%N")
-					until
-						l_received.after
-					loop
-						io.put_string (l_received.item)
+			io.put_string ("Acepte socket Server%N")
+			create our_list.make
+			if attached {NETWORK_STREAM_SOCKET} soc1.accepted as soc2 then
+				create l_medium.make (soc2)
+				l_medium.set_for_reading
+				io.put_string ("Recibi socket Server%N")
+				if attached {OUR_MESSAGE} retrieved(l_medium,true) as l_received then
+					io.put_string ("Recibi Server%N")
+					posX := l_received.at(1).to_integer
+					if(l_received.at (2).is_equal ("LEFT")) then
+	--					io.put_string ("Detecte izquierda")
+						posX := posX - 1
+						our_list.extend(posX.out)
+						--io.put_string (posX.out)
+					elseif(l_received.at (2).is_equal ("RIGHT")) then
+						posX := posX + 1
+						our_list.extend(posX.out)
+						--io.put_string (posX.out)
+					else
+						io.put_string ("FUCK%N")
+						io.put_string (l_received.at (2))
 						io.new_line
-						l_received.forth
+						from
+							l_received.start
+							io.put_string ("Esto es lo que esta:%N")
+						until
+							l_received.after
+						loop
+							io.put_string (l_received.item)
+							io.new_line
+							l_received.forth
+						end
+						posX := posX - 1
+						our_list.extend(posX.out)
 					end
-					posX := posX - 1
-					our_list.extend(posX.out)
+					l_medium.set_for_writing
+					independent_store(our_list, l_medium, true)
+					io.put_string ("Envie! Server%N")
+					--l_medium.set_for_reading
+				else
+					io.put_string ("No list received.")
 				end
+				--io.new_line
+				--soc2.close
 			else
-				io.put_string ("No list received.")
+				io.put_string ("No pude recibir%N")
 			end
-			io.new_line
 		end
 note
 	copyright:	"Copyright (c) 1984-2006, Eiffel Software and others"
