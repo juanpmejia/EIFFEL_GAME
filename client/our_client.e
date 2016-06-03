@@ -49,7 +49,7 @@ feature
 				l_host := argv.at (1)
 			end
 			l_port := 55555
-			l_host := "192.168.250.29"--"localhost"
+			l_host := "localhost"--"192.168.250.29"--"localhost"
 			create soc1.make_client_by_port (l_port, l_host)
 			--ssoc1.connect
 			io.put_string ("Conecte%N")

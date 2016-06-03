@@ -30,6 +30,8 @@ feature
 
 	velx : INTEGER
 
+	playerCount : INTEGER
+
 	make_server(argv: ARRAY [STRING])
 		local
 				l_port: INTEGER
@@ -45,6 +47,7 @@ feature
 					l_port := argv.item (1).to_integer
 				end
 				velx := 10
+				playerCount := 1
 				create soc1.make_server_by_port (l_port)
 				from
 					soc1.listen (5)
@@ -82,19 +85,24 @@ feature
 				io.put_string ("Recibi socket Server%N")
 				if attached {OUR_MESSAGE} retrieved(l_medium,true) as l_received then
 					io.put_string ("Recibi Server%N")
-					posX := l_received.at(1).to_integer
-					if(l_received.at (2).is_equal ("LEFT")) then
+					if(l_received.at (1).is_equal ("LEFT")) then
+						posX := l_received.at(2).to_integer
 	--					io.put_string ("Detecte izquierda")
 						posX := posX - velx
 						our_list.extend(posX.out)
 						--io.put_string (posX.out)
-					elseif(l_received.at (2).is_equal ("RIGHT")) then
+					elseif(l_received.at (1).is_equal ("RIGHT")) then
+						posX := l_received.at(2).to_integer
 						posX := posX + velx
 						our_list.extend(posX.out)
 						--io.put_string (posX.out)
+					elseif(l_received.at (1).is_equal ("INI")) then
+						io.put_string ("Jugador: "+playerCount.out+"%N")
+						our_list.extend(playerCount.out)
+						playerCount := playerCount +1
 					else
 						io.put_string ("FUCK%N")
-						io.put_string (l_received.at (2))
+						io.put_string (l_received.at (1))
 						io.new_line
 						from
 							l_received.start
@@ -112,11 +120,9 @@ feature
 					l_medium.set_for_writing
 					independent_store(our_list, l_medium, true)
 					io.put_string ("Envie! Server%N")
-					--l_medium.set_for_reading
 				else
 					io.put_string ("No list received.")
 				end
-				--io.new_line
 				soc2.close
 			else
 				io.put_string ("No pude recibir%N")
@@ -132,7 +138,5 @@ note
 			 Website http://www.eiffel.com
 			 Customer support http://support.eiffel.com
 		]"
-
-
 end
 
