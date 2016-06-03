@@ -53,14 +53,15 @@ feature
 				until
 					false
 				loop
+
 					soc1.accept
-					io.put_string ("Intentando procesar%N")
+					io.put_string ("Acepte socket Server%N")
 					process_message  -- See below
 					io.put_string ("Se proceso%N")
-					count := count + 1
+
 				end
-				io.put_string ("sali")
 				soc1.cleanup
+				io.put_string ("sali")
 		rescue
 			if soc1 /= Void then
 				soc1.cleanup
@@ -73,7 +74,7 @@ feature
 			l_medium : SED_MEDIUM_READER_WRITER
 			posX:INTEGER
 		do
-			io.put_string ("Acepte socket Server%N")
+			io.put_string ("Intentando procesar%N")
 			create our_list.make
 			if attached {NETWORK_STREAM_SOCKET} soc1.accepted as soc2 then
 				create l_medium.make (soc2)

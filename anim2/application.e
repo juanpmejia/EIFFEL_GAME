@@ -98,6 +98,7 @@ feature {NONE} -- Routines
 				message.extend (maryo_x.out)
 				if go_left then
 					message.extend ("LEFT")
+					client.soc1.connect
 					client.send (message)
 					maryo_x := client.receive.at (1).to_integer
 					--client.soc1.cleanup
@@ -109,8 +110,10 @@ feature {NONE} -- Routines
 				elseif go_right then
 --					maryo_x:=maryo_x+1	-- Move the Maryo to the left
 					message.extend ("RIGHT")
+					client.soc1.connect
 					client.send (message)
 					maryo_x := client.receive.at (1).to_integer
+					--client.soc1.cleanup
 					client.restart
 					--anim_index:=(anim_index+1)\\20		-- The same image must be print for 5 calls of main_loop. There is 4 images in the animation.
 														-- o at index 20, we go back to the first (index 0)
