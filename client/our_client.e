@@ -17,6 +17,8 @@ inherit
 
 	SED_STORABLE_FACILITIES
 
+
+
 create
 
 	make_client
@@ -93,6 +95,16 @@ feature
 			soc1.cleanup
 			create soc1.make_client_by_port (l_port, l_host)
 		end
+
+--	connect
+--		do
+--			soc1.connect
+--		rescue
+--			io.put_string ("Connection failed%N Retrying%N")
+--			retry
+--		end
+
+
 
 note
 	copyright:	"Copyright (c) 1984-2006, Eiffel Software and others"

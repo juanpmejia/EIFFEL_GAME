@@ -20,6 +20,7 @@ feature {NONE} -- Initialization
 		do
 			create controller.make
 			controller.enable_video -- Enable the video functionalities
+			connectionFailed := false
 			run_game(controller)  -- Run the core creator of the game.
 			controller.quit_library  -- Clear the library before quitting
 		end
@@ -31,48 +32,57 @@ feature {NONE} -- Initialization
 			random_gen:GAME_RANDOM_CONTROLLER
 			playerNum:INTEGER
 			message:OUR_MESSAGE
+
 		do
-			--Associate keyboard events
-			controller.event_controller.on_quit_signal.extend (agent on_quit(controller))  -- When the X of the window is pressed, execute the on_quit method.
-			controller.event_controller.on_key_down.extend(agent on_key_down)
-			controller.event_controller.on_key_up.extend(agent on_key_up)
+			if not connectionFailed then --No need to re initialize variables
+				--Associate keyboard events
+				controller.event_controller.on_quit_signal.extend (agent on_quit(controller))  -- When the X of the window is pressed, execute the on_quit method.
+				controller.event_controller.on_key_down.extend(agent on_key_down)
+				controller.event_controller.on_key_up.extend(agent on_key_up)
 
-			--Load resources
-			sky:=create {GAME_SURFACE_IMG_FILE}.make_with_alpha ("Sprites\background.jpg")  -- Create the sky surface
-			create bk.make_with_bit_per_pixel(sky.width,sky.height,16,true)  -- Create the background surface
-			bk.draw_surface (sky, 0, 0)	-- Show the desert surface on the blue background.
-			sprites:=gen_sprites		-- Generate the animations images
-			controller.create_screen_surface (bk.width, bk.height, 16, true, true, false, true, false)	-- Create the window. Dimension: same as bk image, 16 bits per pixel, Use video memory, use hardware double buffer,
+				--Load resources
+				sky:=create {GAME_SURFACE_IMG_FILE}.make_with_alpha ("Sprites\background.jpg")  -- Create the sky surface
+				create bk.make_with_bit_per_pixel(sky.width,sky.height,16,true)  -- Create the background surface
+				bk.draw_surface (sky, 0, 0)	-- Show the desert surface on the blue background.
+				sprites:=gen_sprites		-- Generate the animations images
+				controller.create_screen_surface (bk.width, bk.height, 16, true, true, false, true, false)	-- Create the window. Dimension: same as bk image, 16 bits per pixel, Use video memory, use hardware double buffer,
 
-			--Initialize control variables
-			go_left:=false
-			go_right:=false
-			create random_gen.make		-- Creation of a random generator (you can also use the GAME_LIB_CONTROLLER that is a GAME_RANDOM object too)
-			random_gen.generate_new_random		-- Generate a number
+				--Initialize control variables
+				go_left:=false
+				go_right:=false
+				create random_gen.make		-- Creation of a random generator (you can also use the GAME_LIB_CONTROLLER that is a GAME_RANDOM object too)
+				random_gen.generate_new_random		-- Generate a number
 
-			--Initialize player positions
-			players_x:=create {ARRAYED_LIST[INTEGER]}.make(4)
-			players_y:=create {ARRAYED_LIST[INTEGER]}.make(4)
-			players_x.extend ((bk.width//2)-sprites.at (1).width//2) --Initial x position of the first player
-			players_x.extend ((bk.width//2)-sprites.at (2).width//2)	--Initial x position of the second player
-			players_x.extend ((bk.width//2)-sprites.at (3).width//2) --Initial x position of the third player
-			players_x.extend ((bk.width//2)-sprites.at (4).width//2) --Initial x position of the fourth player
+				--Initialize player positions
+				players_x:=create {ARRAYED_LIST[INTEGER]}.make(4)
+				players_y:=create {ARRAYED_LIST[INTEGER]}.make(4)
+				players_x.extend ((bk.width//2)-sprites.at (1).width//2) --Initial x position of the first player
+				players_x.extend ((bk.width//2)-sprites.at (2).width//2)	--Initial x position of the second player
+				players_x.extend ((bk.width//2)-sprites.at (3).width//2) --Initial x position of the third player
+				players_x.extend ((bk.width//2)-sprites.at (4).width//2) --Initial x position of the fourth player
 
-			players_y.extend (bk.height-sprites.at (1).height) --Initial y position of the first player
-			players_y.extend (0) --Initial y position of the second player
-			players_y.extend (bk.height-sprites.at (3).height) --Initial y position of the third player
-			players_y.extend (0) --Initial y position of the fourth player
+				players_y.extend (bk.height-sprites.at (1).height) --Initial y position of the first player
+				players_y.extend (0) --Initial y position of the second player
+				players_y.extend (bk.height-sprites.at (3).height) --Initial y position of the third player
+				players_y.extend (0) --Initial y position of the fourth player
 
-			--Get player number
-			create client.make_client (create{OUR_MESSAGE}.make)
-			create message.make
-			message.extend ("INI")
-			client.soc1.connect
-			client.send (message)
-			playerNum := client.receive.at (1).to_integer
-			client.soc1.cleanup
+				--Get player number
+				create client.make_client (create{OUR_MESSAGE}.make)
+				create message.make
+				message.extend ("INI")
+			end
+				client.soc1.connect
+				client.send (message)
+				if not gameStarted then
+					playerNum := client.receive.at (1).to_integer
+				end
+				client.soc1.cleanup
+				main_loop(controller,bk,sprites,playerNum)
 
-			main_loop(controller,bk,sprites,playerNum)
+		rescue
+			connectionFailed := true
+			io.put_string ("La conexion fallo. Reintentando...%N")
+			retry
 		end
 
 	gen_sprites:LIST[GAME_SURFACE]
@@ -99,6 +109,7 @@ feature {NONE} -- Routines
 			received : OUR_MESSAGE
 			count : INTEGER
 		do
+			gameStarted:=true
 			from
 				create message.make
 				create client.make_client (message)
@@ -176,5 +187,7 @@ feature {NONE} -- Variables
 	players_x:LIST[INTEGER]
 	players_y:LIST[INTEGER]
 	must_quit:BOOLEAN
+	connectionFailed:BOOLEAN
+	gameStarted:BOOLEAN
 
 end
