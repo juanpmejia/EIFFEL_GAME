@@ -96,6 +96,8 @@ feature {NONE} -- Routines
 			-- This routine is not a loop, but it will be launch at each pass of the application main loop
 		local
 			message : OUR_MESSAGE
+			received : OUR_MESSAGE
+			count : INTEGER
 		do
 			from
 				create message.make
@@ -107,23 +109,33 @@ feature {NONE} -- Routines
 				create message.make
 				controller.screen_surface.draw_surface (bk, 0, 0)	-- Print the background on the screen surface
 				if go_left then
-					message.extend ("LEFT")
-					message.extend (players_x.at (playerNum).out)
-					client.soc1.connect
-					client.send (message)
-					players_x.put_i_th (client.receive.at (1).to_integer, playerNum)
-					client.restart
+					message.extend ("LEFT") --Direction
+					message.extend (players_x.at (playerNum).out) --Position
+					message.extend (playerNum.out) --ID
 				elseif go_right then
-					message.extend ("RIGHT")
-					message.extend (players_x.at (playerNum).out)
+					message.extend ("RIGHT") --Direction
+					message.extend (players_x.at (playerNum).out) --Position
+					message.extend (playerNum.out) --ID
+				else
+					message.extend ("UPDATE")
+					message.extend (players_x.at (playerNum).out) --Position
+					message.extend (playerNum.out) --ID
+				end
+				from
 					client.soc1.connect
 					client.send (message)
-					players_x.put_i_th (client.receive.at (1).to_integer, playerNum)
-					client.restart
-				else
-					--controller.screen_surface.draw_surface (maryo_anim.at (anim_index), maryo_x, maryo_y)		-- No move, show the static sprite
+					received := client.receive
+					count := 1
+				until
+					count = 5
+				loop
+					players_x.put_i_th (received.at (count).to_integer, count)
+					if  players_x.at (count) > 0 then
+						controller.screen_surface.draw_surface (sprites.at (count), players_x.at(count), players_y.at(count))
+					end
+					count := count + 1
 				end
-				controller.screen_surface.draw_surface (sprites.at (playerNum), players_x.at(playerNum), players_y.at(playerNum))		-- No move, show the static sprite
+				client.restart
 				controller.flip_screen		-- Show the screen in the window
 				controller.update		-- This call is very important. It permit to the events to continue.
 				controller.delay (1)		-- Donc forget the loop delay. Without it, your CPU will burn :)

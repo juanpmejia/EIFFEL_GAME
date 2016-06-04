@@ -32,7 +32,13 @@ feature
 
 	playerCount : INTEGER
 
+
+	players_x : LINKED_LIST[INTEGER]
+
+
 	make_server(argv: ARRAY [STRING])
+
+
 		local
 				l_port: INTEGER
 				count : INTEGER
@@ -48,6 +54,17 @@ feature
 				end
 				velx := 10
 				playerCount := 1
+
+				create players_x.make
+				from
+					count := 1
+				until
+					count = 5
+				loop
+					players_x.extend (-1)
+					count := count + 1
+				end
+
 				create soc1.make_server_by_port (l_port)
 				from
 					soc1.listen (5)
@@ -75,7 +92,9 @@ feature
 			-- Print the contents of received in sequence.
 		local
 			l_medium : SED_MEDIUM_READER_WRITER
+			player:INTEGER
 			posX:INTEGER
+			count:INTEGER
 		do
 			io.put_string ("Intentando procesar%N")
 			create our_list.make
@@ -87,15 +106,20 @@ feature
 					io.put_string ("Recibi Server%N")
 					if(l_received.at (1).is_equal ("LEFT")) then
 						posX := l_received.at(2).to_integer
-	--					io.put_string ("Detecte izquierda")
 						posX := posX - velx
-						our_list.extend(posX.out)
-						--io.put_string (posX.out)
+						player := l_received.at(3).to_integer
+						players_x.put_i_th (posX, player)
+
 					elseif(l_received.at (1).is_equal ("RIGHT")) then
 						posX := l_received.at(2).to_integer
 						posX := posX + velx
-						our_list.extend(posX.out)
-						--io.put_string (posX.out)
+						player := l_received.at(3).to_integer
+						players_x.put_i_th (posX, player)
+
+					elseif(l_received.at (1).is_equal ("UPDATE")) then
+						posX := l_received.at(2).to_integer
+						player := l_received.at(3).to_integer
+						players_x.put_i_th (posX, player)
 					elseif(l_received.at (1).is_equal ("INI")) then
 						io.put_string ("Jugador: "+playerCount.out+"%N")
 						our_list.extend(playerCount.out)
@@ -116,6 +140,14 @@ feature
 						end
 						posX := posX - 1
 						our_list.extend(posX.out)
+					end
+					from
+						count := 1
+					until
+						count = 5
+					loop
+						our_list.extend (players_x.at (count).out)
+						count := count + 1
 					end
 					l_medium.set_for_writing
 					independent_store(our_list, l_medium, true)
