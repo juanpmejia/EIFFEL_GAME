@@ -39,19 +39,15 @@ feature
 			-- Build list, send it, receive modified list, and print it.
 
 		do
-			if argv.count /= 3 then
---				io.error.put_string ("Usage: ")
---				io.error.put_string (argv.at (1))
---				io.error.put_string (" hostname portnumber%N")
---				io.error.put_string ("Defaulting to host `localhost' and port `2000'.%N")
-				l_port := 2000
-				l_host := "localhost"--"192.168.250.251"
-			else
+			if argv.count=2 then
 				l_port := argv.at (2).to_integer
 				l_host := argv.at (1)
+			else
+				l_port := 55555
+				l_host := "localhost"--"192.168.250.35"--"localhost"--"192.168.250.29"--"localhost"
 			end
 			l_port := 55555
-			l_host := "localhost"--"192.168.250.29"--"localhost"
+			l_host := "localhost"--"192.168.250.35"--"localhost"--"192.168.250.29"--"localhost"
 			create soc1.make_client_by_port (l_port, l_host)
 			--ssoc1.connect
 			--io.put_string ("Conecte%N")

@@ -131,6 +131,7 @@ feature
 			posX:INTEGER
 			count:INTEGER
 			count2: INTEGER
+			oldPlayer: BOOLEAN
 		do
 			--io.put_string ("Intentando procesar%N")
 			create our_list.make
@@ -161,6 +162,7 @@ feature
 						screenH := l_received.at(3).to_integer
 						alienW := l_received.at(4).to_integer
 						alienH := l_received.at(5).to_integer
+						oldPlayer :=  l_received.at(6).to_integer.to_boolean
 						io.put_string ("Jugador: "+playerCount.out+"%N")
 						if not gameStarted then
 							from
@@ -179,8 +181,10 @@ feature
 
 							end
 						end
-						our_list.extend(playerCount.out)
-						playerCount := playerCount +1
+						if not oldPlayer then
+							our_list.extend(playerCount.out)
+							playerCount := playerCount +1
+						end
 					else
 						io.put_string ("FUCK%N")
 						io.put_string (l_received.at (1))

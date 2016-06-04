@@ -76,9 +76,14 @@ feature {NONE} -- Initialization
 				message.extend (sprites.at (5).height.out)
 			end
 				client.soc1.connect
-				client.send (message)
+
 				if not gameStarted then --Get player number
+					message.extend ("False")
+					client.send (message)
 					playerNum := client.receive.at (1).to_integer
+				else
+					client.send (message)
+					message.extend ("True")
 				end
 				client.soc1.cleanup
 				main_loop(controller,bk,sprites,playerNum)
