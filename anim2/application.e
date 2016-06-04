@@ -38,6 +38,7 @@ feature {NONE} -- Initialization
 			random_gen:GAME_RANDOM_CONTROLLER
 			playerNum:INTEGER
 			message:OUR_MESSAGE
+			temp_message:OUR_MESSAGE
 
 		do
 			if not connectionFailed then --No need to re initialize variables
@@ -76,6 +77,7 @@ feature {NONE} -- Initialization
 				create s_address.make
 				s_address.extend("192.168.250.35")
 				s_address.extend("192.168.250.45")
+				s_port := 55555
 				s_count := 1
 				create message.make
 				message.extend (s_address.at(s_count))
@@ -102,12 +104,13 @@ feature {NONE} -- Initialization
 			main_loop(controller,bk,sprites,playerNum)
 		rescue
 			connectionFailed := true
-			s_count:=((s_count + 1)\\s_address.count) + 1
-			create message.make
-			message.extend (s_address.at(s_count))
-			message.extend (s_port.out)
-			create client.make_client (message)
-			io.put_string ("La conexion fallo. Reintentando con direccion "+message.at (1)+"...%N")
+			s_count:=((s_count )\\s_address.count) + 1
+			create temp_message.make
+			temp_message.extend (s_address.at(s_count))
+			temp_message.extend (s_port.out)
+			--client.soc1.cleanup
+			create client.make_client (temp_message)
+			io.put_string ("La conexion fallo. Reintentando con direccion "+temp_message.at (1)+"...%N")
 			retry
 		end
 
@@ -141,7 +144,8 @@ feature {NONE} -- Routines
 			gameStarted:=true
 			from
 				create message.make
-				create client.make_client (message)
+				--create client.make_client (message)
+				client.restart
 				must_quit:=false
 			until
 				must_quit

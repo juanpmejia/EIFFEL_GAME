@@ -40,14 +40,17 @@ feature
 
 		do
 			if argv.count=2 then
+				io.put_string ("Me llegaron los datos%N")
 				l_port := argv.at (2).to_integer
 				l_host := argv.at (1)
 			else
 				l_port := 55555
 				l_host := "localhost"--"192.168.250.35"--"localhost"--"192.168.250.29"--"localhost"
 			end
-			l_port := 55555
-			l_host := "192.168.250.253"--"localhost"--"192.168.250.29"--"localhost"
+			--l_port := 55555
+			--l_host := "192.168.250.253"--"localhost"--"192.168.250.29"--"localhost"
+			io.put_string (l_host+"%N")
+			io.put_string (l_port.out+"%N")
 			create soc1.make_client_by_port (l_port, l_host)
 			--ssoc1.connect
 			--io.put_string ("Conecte%N")
