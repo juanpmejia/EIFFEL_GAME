@@ -13,6 +13,12 @@ feature {NONE} -- Initialization
 
 	client: OUR_CLIENT
 
+	s_address : LINKED_LIST[STRING]
+
+	s_count : INTEGER
+
+	s_port : INTEGER
+
 	make
 		local
 			controller:GAME_LIB_CONTROLLER
@@ -67,7 +73,14 @@ feature {NONE} -- Initialization
 				players_y.extend (0) --Initial y position of the fourth player
 
 				--Create client and initialize message
-				create client.make_client (create{OUR_MESSAGE}.make)
+				create s_address.make
+				s_address.extend("192.168.250.35")
+				s_address.extend("192.168.250.45")
+				s_count := 1
+				create message.make
+				message.extend (s_address.at(s_count))
+				message.extend (s_port.out)
+				create client.make_client (message)
 				create message.make
 				message.extend ("INI")
 				message.extend (bk.width.out)
@@ -89,8 +102,12 @@ feature {NONE} -- Initialization
 			main_loop(controller,bk,sprites,playerNum)
 		rescue
 			connectionFailed := true
-			create client.make_client (create{OUR_MESSAGE}.make)
-			io.put_string ("La conexion fallo. Reintentando...%N")
+			s_count:=((s_count + 1)\\s_address.count) + 1
+			create message.make
+			message.extend (s_address.at(s_count))
+			message.extend (s_port.out)
+			create client.make_client (message)
+			io.put_string ("La conexion fallo. Reintentando con direccion "+message.at (1)+"...%N")
 			retry
 		end
 

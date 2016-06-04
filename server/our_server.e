@@ -56,13 +56,21 @@ feature
 
 	gameStarted : BOOLEAN
 
+	client : OUR_CLIENT
 
+	principal : BOOLEAN
+
+	s_address : STRING
+
+	s_status : BOOLEAN
 
 	make_server(argv: ARRAY [STRING])
 
 		local
 				l_port: INTEGER
 				count : INTEGER
+				message : OUR_MESSAGE
+				mreceived : OUR_MESSAGE
 			do
 				if not connectionFailed then --First time we try to connect we need to initialize
 					if argv.count /= 2 then
@@ -79,6 +87,7 @@ feature
 					playerCount := 1
 					alienCount := 4
 					alienDir := 1
+					principal := true
 					create players_x.make
 					create aliens_x.make
 					create aliens_y.make
@@ -100,22 +109,80 @@ feature
 						count := count + 1
 					end
 				end
-				create soc1.make_server_by_port (l_port)
-				from
-					soc1.listen (5)
-				until
-					false
-				loop
-					soc1.accept
-					--io.put_string ("Acepte socket Server%N")
-					process_message  -- See below
-					--io.put_string ("Se proceso%N")
+
+				if principal then
+					create soc1.make_server_by_port (l_port)
+					from
+						soc1.listen (5)
+					until
+						false
+					loop
+						soc1.accept
+						--io.put_string ("Acepte socket Server%N")
+						process_message  -- See below
+						--io.put_string ("Se proceso%N")
+
+					end
+					soc1.cleanup
+					io.put_string ("sali")
+				else
+
+
+					from
+						s_address := ("192.168.250.35")
+						create message.make
+						message.extend (s_address)
+						message.extend (l_port.out)
+						create client.make_client (message)
+					until
+						false
+					loop
+
+						client.soc1.connect
+						create message.make
+						message.extend ("RESP")
+						client.send(message)
+						mreceived := client.receive
+						client.soc1.cleanup
+						from
+							count := 1
+						until
+							count = mreceived.count + 1
+						loop
+							if count <= 4 then
+								players_x.put_i_th (mreceived.at (count).to_integer, count)
+
+							elseif count = 5 then
+
+								alienCount := mreceived.at (count).to_integer
+
+							elseif count >= 6 and count - 5 < alienCount then
+
+								aliens_x.put_i_th (mreceived.at (count).to_integer, count-5)
+
+							elseif count - 5 = alienCount then
+
+								alienDir := mreceived.at (count).to_integer
+							end
+							count := count + 1
+
+						end
+
+					end
 
 				end
-				soc1.cleanup
-				io.put_string ("sali")
+
 		rescue
 			if soc1 /= Void then
+				if principal then
+					soc1.cleanup
+					connectionFailed:=true
+					io.put_string ("Connection failed. Waiting for players")
+					retry
+				else
+					principal := true
+					io.put_string ("Iniciando servidor principal")
+				end
 				soc1.cleanup
 				connectionFailed:=true
 				io.put_string ("Connection failed. Waiting for players")
