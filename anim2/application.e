@@ -85,6 +85,7 @@ feature {NONE} -- Initialization
 
 		rescue
 			connectionFailed := true
+			create client.make_client (create{OUR_MESSAGE}.make)
 			io.put_string ("La conexion fallo. Reintentando...%N")
 			retry
 		end
