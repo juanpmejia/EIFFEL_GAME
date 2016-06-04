@@ -32,48 +32,45 @@ feature
 
 	playerCount : INTEGER
 
-
 	players_x : LINKED_LIST[INTEGER]
+
+	connectionFailed : BOOLEAN
 
 
 	make_server(argv: ARRAY [STRING])
-
-
+	
 		local
 				l_port: INTEGER
 				count : INTEGER
 			do
-				if argv.count /= 2 then
-					io.error.put_string ("Usage: ")
-					io.error.put_string (argv.item (0))
-					io.error.put_string (" hostname portnumber%N")
-					io.error.put_string ("Defaulting to host `localhost' and port `2000'.%N")
-					l_port := 2000
-				else
-					l_port := argv.item (1).to_integer
+				if not connectionFailed then --First time we try to connect we need to initialize
+					if argv.count /= 2 then
+						io.error.put_string ("Usage: ")
+						io.error.put_string (argv.item (0))
+						io.error.put_string (" hostname portnumber%N")
+						io.error.put_string ("Defaulting to host `localhost' and port `2000'.%N")
+						l_port := 2000
+					else
+						l_port := argv.item (1).to_integer
+					end
+					velx := 10
+					playerCount := 1
+					create players_x.make
+					from
+						count := 1
+					until
+						count = 5
+					loop
+						players_x.extend (-1)
+						count := count + 1
+					end
 				end
-				velx := 10
-				playerCount := 1
-
-				create players_x.make
-				from
-					count := 1
-				until
-					count = 5
-				loop
-					players_x.extend (-1)
-					count := count + 1
-				end
-
 				create soc1.make_server_by_port (l_port)
 				from
 					soc1.listen (5)
-
-					count := 0
 				until
 					false
 				loop
-
 					soc1.accept
 					io.put_string ("Acepte socket Server%N")
 					process_message  -- See below
@@ -85,6 +82,9 @@ feature
 		rescue
 			if soc1 /= Void then
 				soc1.cleanup
+				connectionFailed:=true
+				io.put_string ("Connection failed. Waiting for players")
+				retry
 			end
 		end
 
