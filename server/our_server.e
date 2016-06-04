@@ -334,6 +334,9 @@ feature
 						our_list.extend (aliens_x.at (count).out)
 						count := count + 1
 					end
+					if l_received.at (1).is_equal ("RESP") then
+						our_list.extend (alienDir.out)
+					end
 					l_medium.set_for_writing
 					independent_store(our_list, l_medium, true)
 					--io.put_string ("Envie! Server%N")
