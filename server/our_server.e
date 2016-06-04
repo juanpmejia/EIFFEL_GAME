@@ -118,7 +118,7 @@ feature
 			if soc1 /= Void then
 				soc1.cleanup
 				connectionFailed:=true
-				--io.put_string ("Connection failed. Waiting for players")
+				io.put_string ("Connection failed. Waiting for players")
 				retry
 			end
 		end
@@ -162,7 +162,16 @@ feature
 						screenH := l_received.at(3).to_integer
 						alienW := l_received.at(4).to_integer
 						alienH := l_received.at(5).to_integer
-						oldPlayer :=  l_received.at(6).to_integer.to_boolean
+						oldPlayer :=  l_received.at(6).to_boolean
+						from
+							l_received.start
+						until
+							l_received.after
+						loop
+							io.put_string (l_received.item+"%N")
+							l_received.forth
+						end
+						io.put_string (l_received.at (6)+" Es oldplayer?%N")
 						io.put_string ("Jugador: "+playerCount.out+"%N")
 						if not gameStarted then
 							from

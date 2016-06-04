@@ -75,19 +75,18 @@ feature {NONE} -- Initialization
 				message.extend (sprites.at (5).width.out)
 				message.extend (sprites.at (5).height.out)
 			end
-				client.soc1.connect
+			client.soc1.connect
 
-				if not gameStarted then --Get player number
-					message.extend ("False")
-					client.send (message)
-					playerNum := client.receive.at (1).to_integer
-				else
-					client.send (message)
-					message.extend ("True")
-				end
-				client.soc1.cleanup
-				main_loop(controller,bk,sprites,playerNum)
-
+			if not gameStarted then --Get player number
+				message.extend ("False")
+				client.send (message)
+				playerNum := client.receive.at (1).to_integer
+			else
+				message.put_i_th ("True", 6)
+				client.send (message)
+			end
+			client.soc1.cleanup
+			main_loop(controller,bk,sprites,playerNum)
 		rescue
 			connectionFailed := true
 			create client.make_client (create{OUR_MESSAGE}.make)
