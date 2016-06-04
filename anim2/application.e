@@ -66,14 +66,18 @@ feature {NONE} -- Initialization
 				players_y.extend (bk.height-sprites.at (3).height) --Initial y position of the third player
 				players_y.extend (0) --Initial y position of the fourth player
 
-				--Get player number
+				--Create client and initialize message
 				create client.make_client (create{OUR_MESSAGE}.make)
 				create message.make
 				message.extend ("INI")
+				message.extend (bk.width.out)
+				message.extend (bk.height.out)
+				message.extend (sprites.at (5).width.out)
+				message.extend (sprites.at (5).height.out)
 			end
 				client.soc1.connect
 				client.send (message)
-				if not gameStarted then
+				if not gameStarted then --Get player number
 					playerNum := client.receive.at (1).to_integer
 				end
 				client.soc1.cleanup
@@ -98,6 +102,8 @@ feature {NONE} -- Initialization
 			Result.extend (shipSprite)
 			create shipSprite.make_with_alpha ("Sprites\j4-sprite.png")
 			Result.extend (shipSprite)
+			create shipSprite.make_with_alpha ("Sprites\invader-sprite.png")
+			Result.extend (shipSprite)
 		end
 
 feature {NONE} -- Routines
@@ -108,6 +114,7 @@ feature {NONE} -- Routines
 			message : OUR_MESSAGE
 			received : OUR_MESSAGE
 			count : INTEGER
+			alienNum:INTEGER
 		do
 			gameStarted:=true
 			from
@@ -136,13 +143,23 @@ feature {NONE} -- Routines
 					client.soc1.connect
 					client.send (message)
 					received := client.receive
+					alienNum := received.at (5).to_integer
+					create aliens_x.make
+					create aliens_y.make
 					count := 1
 				until
-					count = 5
+					count = 5+alienNum+1 --Plus one so the alienNum is readed
 				loop
-					players_x.put_i_th (received.at (count).to_integer, count)
-					if  players_x.at (count) > 0 then
-						controller.screen_surface.draw_surface (sprites.at (count), players_x.at(count), players_y.at(count))
+					if count<=4 then --For every player
+						players_x.put_i_th (received.at (count).to_integer, count)
+						if  players_x.at (count) > 0 then --If the player is alive
+							controller.screen_surface.draw_surface (sprites.at (count), players_x.at(count), players_y.at(count))
+						end
+					elseif count>=6 then
+						aliens_x.extend (received.at (count).to_integer)
+						--io.putstring ("MARCIANITOOOOO "+aliens_x.at(count-5).out)
+						--io.new_line
+						controller.screen_surface.draw_surface (sprites.at (5), aliens_x.at(count-5), bk.height//2)--aliens_y.at(count-5))
 					end
 					count := count + 1
 				end
@@ -186,6 +203,8 @@ feature {NONE} -- Variables
 	go_right:BOOLEAN
 	players_x:LIST[INTEGER]
 	players_y:LIST[INTEGER]
+	aliens_x:LINKED_LIST[INTEGER]
+	aliens_y:LINKED_LIST[INTEGER]
 	must_quit:BOOLEAN
 	connectionFailed:BOOLEAN
 	gameStarted:BOOLEAN

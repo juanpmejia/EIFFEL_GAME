@@ -54,7 +54,7 @@ feature
 			l_host := "localhost"--"192.168.250.29"--"localhost"
 			create soc1.make_client_by_port (l_port, l_host)
 			--ssoc1.connect
-			io.put_string ("Conecte%N")
+			--io.put_string ("Conecte%N")
 		rescue
 			if soc1 /= Void then
 				soc1.cleanup
@@ -67,9 +67,9 @@ feature
 		do
 			create l_medium.make (soc1)
 			l_medium.set_for_writing
-			io.put_string ("Tratando de enviar%N")
+			--io.put_string ("Tratando de enviar%N")
 			independent_store (toSend, l_medium, True)
-			io.put_string ("Envie! Cliente%N")
+			--io.put_string ("Envie! Cliente%N")
 			--l_medium.set_for_reading
 
 		end
@@ -83,7 +83,7 @@ feature
 			create l_medium.make (soc1)
 			l_medium.set_for_reading
 			if attached {OUR_MESSAGE} retrieved (l_medium, True) as our_new_list then
-				io.put_string ("Recibi Cliente%N")
+				--io.put_string ("Recibi Cliente%N")
 				Result:=our_new_list
 			else
 				io.put_string ("me jodi Cliente%N")
